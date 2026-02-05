@@ -17,7 +17,7 @@ This project tests the compatibility and functionality of the `deltalake` Python
 - Python 3.10+
 - Access to a Hopsworks cluster
 - Required packages:
-  - `deltalake` (custom Hopsworks build: `1.0.0rc0+os1.0.1`)
+  - `deltalake` (custom Hopsworks build)
   - `hopsworks`
   - `pyarrow`
   - `pandas`
