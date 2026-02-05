@@ -169,7 +169,7 @@ def test_read_file_uris():
 def run_all_read_tests():
     """Run all read operation tests."""
     print("\n" + "=" * 50)
-    print("PHASE 1: READ OPERATIONS TESTS")
+    print("READ OPERATIONS TESTS")
     print("=" * 50)
 
     # Connect to Hopsworks once

@@ -155,7 +155,7 @@ def test_write_schema_evolution():
 def run_all_write_tests():
     """Run all write operation tests."""
     print("\n" + "=" * 50)
-    print("PHASE 1: WRITE OPERATIONS TESTS")
+    print("WRITE OPERATIONS TESTS")
     print("=" * 50)
 
     # Connect to Hopsworks once

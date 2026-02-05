@@ -1,7 +1,7 @@
 # -------------------------------
-# Phase 1 Test Runner
+# Write & Read Operations Test Runner
 # -------------------------------
-# Run all Phase 1 tests: Write Operations + Read Operations
+# Tests: write (overwrite, append, partitioned, schema), read (load, arrow, pandas, filter, time travel)
 
 from tests.config import (
     HOPSWORKS_API_HOST,
@@ -16,7 +16,7 @@ import hopsworks
 
 # Connect to Hopsworks once for all tests
 print("=" * 60)
-print("DELTA-RS FILESYSTEM OPERATIONS - PHASE 1 TESTS")
+print("DELTA-RS FILESYSTEM OPERATIONS - WRITE & READ TESTS")
 print("=" * 60)
 
 project = hopsworks.login(
@@ -85,7 +85,7 @@ for name, test_fn in all_tests:
 
 # Summary
 print("\n" + "=" * 60)
-print("PHASE 1 TEST SUMMARY")
+print("WRITE & READ TEST SUMMARY")
 print("=" * 60)
 
 for name, status, error in results:

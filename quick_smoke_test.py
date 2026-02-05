@@ -1,6 +1,10 @@
 # -------------------------------
-# Set required environment variables and parameters
+# Quick Smoke Test
 # -------------------------------
+# Simple single-file test to verify basic Delta Lake write on HopsFS
+# For comprehensive tests, use: run_write_read.py, run_dml.py, etc.
+#
+# Configuration:
 
 import os
 
