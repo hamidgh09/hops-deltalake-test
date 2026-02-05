@@ -15,7 +15,7 @@ from tests.config import (
 import pyarrow as pa
 import pandas as pd
 import hopsworks
-from deltalake import write_deltalake, DeltaTable
+from deltalake import write_deltalake, DeltaTable, QueryBuilder
 
 
 def setup_dml_test_table():
@@ -306,6 +306,153 @@ def test_merge_conditional_update():
     print("[PASS] id=2 remains 200 (180 < 200, condition not met)")
 
 
+def test_delete_with_deletion_vectors():
+    """Test delete operation with deletion vectors enabled."""
+    print("\n=== Test: Delete with Deletion Vectors ===")
+
+    table_path = get_table_path("delta_dv_delete_test")
+
+    # Create table with deletion vectors enabled
+    df = pd.DataFrame({
+        "id": [1, 2, 3, 4, 5],
+        "name": ["Alice", "Bob", "Charlie", "David", "Eve"],
+        "score": [85, 90, 78, 92, 88]
+    })
+    write_deltalake(
+        table_path,
+        pa.Table.from_pandas(df, preserve_index=False),
+        mode="overwrite",
+        configuration={"delta.enableDeletionVectors": "true"}
+    )
+    print("[PASS] Created table with deletion vectors enabled")
+
+    dt = DeltaTable(table_path)
+    files_before = dt.file_uris()
+    print(f"[INFO] Data files before delete: {len(files_before)}")
+
+    # Delete some rows - should use deletion vectors instead of rewriting
+    dt.delete("score < 85")
+    print("[PASS] Deleted rows where score < 85")
+
+    # Verify deletion worked using QueryBuilder (required for DV tables)
+    dt = DeltaTable(table_path)
+    result = QueryBuilder().register("tbl", dt).execute("SELECT * FROM tbl").read_all()
+    result_df = pa.table(result).to_pandas()  # Convert arro3 Table to PyArrow then pandas
+    print(f"[PASS] Row count after delete: {len(result_df)} (expected: 4)")
+    assert len(result_df) == 4, f"Expected 4 rows, got {len(result_df)}"
+
+    # Check that all remaining scores are >= 85
+    assert all(result_df['score'] >= 85), "Deletion vectors didn't filter correctly"
+    print("[PASS] Deletion vectors working correctly")
+
+    # Check table properties
+    metadata = dt.metadata()
+    print(f"[INFO] Table configuration: {metadata.configuration}")
+
+
+def test_update_with_deletion_vectors():
+    """Test update operation with deletion vectors enabled."""
+    print("\n=== Test: Update with Deletion Vectors ===")
+
+    table_path = get_table_path("delta_dv_update_test")
+
+    # Create table with deletion vectors enabled
+    df = pd.DataFrame({
+        "id": [1, 2, 3, 4, 5],
+        "status": ["pending", "pending", "pending", "pending", "pending"]
+    })
+    write_deltalake(
+        table_path,
+        pa.Table.from_pandas(df, preserve_index=False),
+        mode="overwrite",
+        configuration={"delta.enableDeletionVectors": "true"}
+    )
+    print("[PASS] Created table with deletion vectors enabled")
+
+    dt = DeltaTable(table_path)
+
+    # Update some rows
+    dt.update(
+        predicate="id <= 2",
+        updates={"status": "'completed'"}
+    )
+    print("[PASS] Updated rows where id <= 2")
+
+    # Verify update worked using QueryBuilder (required for DV tables)
+    dt = DeltaTable(table_path)
+    result = QueryBuilder().register("tbl", dt).execute("SELECT * FROM tbl ORDER BY id").read_all()
+    result_df = pa.table(result).to_pandas()  # Convert arro3 Table to PyArrow then pandas
+    completed_count = len(result_df[result_df['status'] == 'completed'])
+    pending_count = len(result_df[result_df['status'] == 'pending'])
+
+    print(f"[PASS] Completed: {completed_count}, Pending: {pending_count}")
+    assert completed_count == 2, f"Expected 2 completed, got {completed_count}"
+    assert pending_count == 3, f"Expected 3 pending, got {pending_count}"
+    print("[PASS] Update with deletion vectors working correctly")
+
+
+def test_merge_with_deletion_vectors():
+    """Test merge operation with deletion vectors enabled."""
+    print("\n=== Test: Merge with Deletion Vectors ===")
+
+    table_path = get_table_path("delta_dv_merge_test")
+
+    # Create target table with deletion vectors enabled
+    target_df = pd.DataFrame({
+        "id": [1, 2, 3],
+        "value": ["a", "b", "c"]
+    })
+    write_deltalake(
+        table_path,
+        pa.Table.from_pandas(target_df, preserve_index=False),
+        mode="overwrite",
+        configuration={"delta.enableDeletionVectors": "true"}
+    )
+    print("[PASS] Created target table with deletion vectors enabled")
+
+    # Source data: update id=2, delete id=3, insert id=4
+    source_df = pd.DataFrame({
+        "id": [2, 3, 4],
+        "value": ["b_updated", "to_delete", "d_new"],
+        "action": ["update", "delete", "insert"]
+    })
+    source_table = pa.Table.from_pandas(source_df, preserve_index=False)
+
+    dt = DeltaTable(table_path)
+
+    # Merge with update and delete
+    (
+        dt.merge(
+            source=source_table,
+            predicate="target.id = source.id",
+            source_alias="source",
+            target_alias="target"
+        )
+        .when_matched_update(
+            predicate="source.action = 'update'",
+            updates={"value": "source.value"}
+        )
+        .when_matched_delete(predicate="source.action = 'delete'")
+        .when_not_matched_insert(
+            predicate="source.action = 'insert'",
+            updates={"id": "source.id", "value": "source.value"}
+        )
+        .execute()
+    )
+    print("[PASS] Merge executed with update, delete, and insert")
+
+    # Verify using QueryBuilder (required for DV tables)
+    dt = DeltaTable(table_path)
+    result = QueryBuilder().register("tbl", dt).execute("SELECT * FROM tbl ORDER BY id").read_all()
+    result_df = pa.table(result).to_pandas()  # Convert arro3 Table to PyArrow then pandas
+    print(f"[PASS] Result:\n{result_df}")
+
+    assert len(result_df) == 3, f"Expected 3 rows, got {len(result_df)}"
+    assert list(result_df['id']) == [1, 2, 4], f"Expected ids [1, 2, 4], got {list(result_df['id'])}"
+    assert result_df[result_df['id'] == 2]['value'].values[0] == 'b_updated', "id=2 should be updated"
+    print("[PASS] Merge with deletion vectors working correctly")
+
+
 def run_all_dml_tests():
     """Run all DML operation tests."""
     print("\n" + "=" * 50)
@@ -329,6 +476,9 @@ def run_all_dml_tests():
         test_merge_upsert,
         test_merge_delete,
         test_merge_conditional_update,
+        test_delete_with_deletion_vectors,
+        test_update_with_deletion_vectors,
+        test_merge_with_deletion_vectors,
     ]
 
     passed = 0

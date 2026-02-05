@@ -96,10 +96,10 @@ deltars-test/
 | Category | Tests | Operations |
 |----------|-------|------------|
 | Write & Read | 13 | overwrite, append, partition, schema evolution, load, arrow/pandas read, filter, time travel, history |
-| DML | 7 | delete, update, merge (upsert, delete, conditional) |
+| DML | 10 | delete, update, merge (upsert, delete, conditional), deletion vectors (delete, update, merge) |
 | Maintenance | 5 | vacuum (dry run, execute), optimize (compact, z-order, filtered) |
 | Advanced | 11 | version, metadata, schema, protocol, checkpoint, restore, constraints, properties |
-| **Total** | **36** | |
+| **Total** | **39** | |
 
 ## Cleanup
 

@@ -57,6 +57,9 @@ from tests.test_dml_operations import (
     test_merge_upsert,
     test_merge_delete,
     test_merge_conditional_update,
+    test_delete_with_deletion_vectors,
+    test_update_with_deletion_vectors,
+    test_merge_with_deletion_vectors,
 )
 
 from tests.test_maintenance import (
@@ -105,6 +108,9 @@ all_tests = {
         ("Merge: Upsert", test_merge_upsert),
         ("Merge: Delete", test_merge_delete),
         ("Merge: Conditional update", test_merge_conditional_update),
+        ("Deletion Vectors: Delete", test_delete_with_deletion_vectors),
+        ("Deletion Vectors: Update", test_update_with_deletion_vectors),
+        ("Deletion Vectors: Merge", test_merge_with_deletion_vectors),
     ],
     "Maintenance": [
         ("Vacuum: Dry run", test_vacuum_dry_run),

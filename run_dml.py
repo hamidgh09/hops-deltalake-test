@@ -38,6 +38,9 @@ from tests.test_dml_operations import (
     test_merge_upsert,
     test_merge_delete,
     test_merge_conditional_update,
+    test_delete_with_deletion_vectors,
+    test_update_with_deletion_vectors,
+    test_merge_with_deletion_vectors,
 )
 
 all_tests = [
@@ -48,6 +51,9 @@ all_tests = [
     ("Merge: Upsert (update + insert)", test_merge_upsert),
     ("Merge: Delete matched rows", test_merge_delete),
     ("Merge: Conditional update", test_merge_conditional_update),
+    ("Deletion Vectors: Delete", test_delete_with_deletion_vectors),
+    ("Deletion Vectors: Update", test_update_with_deletion_vectors),
+    ("Deletion Vectors: Merge", test_merge_with_deletion_vectors),
 ]
 
 passed = 0
