@@ -32,6 +32,7 @@ HOPSWORKS_API_PORT = "8182"
 HOPSWORKS_API_KEY = "your-api-key"
 HOPSWORKS_PROJECT_NAME = "your-project"
 HOPSFS_NAMENODE = "your-namenode-ip"
+HOPSFS_DATANODE = "your-datanode-ip"
 ```
 
 ## Running Tests
@@ -95,11 +96,11 @@ deltars-test/
 
 | Category | Tests | Operations |
 |----------|-------|------------|
-| Write & Read | 13 | overwrite, append, partition, schema evolution, load, arrow/pandas read, filter, time travel, history |
+| Write & Read | 14 | overwrite, append, partition, schema evolution, hopsfs schema, load, arrow/pandas read, filter, time travel, history |
 | DML | 10 | delete, update, merge (upsert, delete, conditional), deletion vectors (delete, update, merge) |
 | Maintenance | 5 | vacuum (dry run, execute), optimize (compact, z-order, filtered) |
 | Advanced | 11 | version, metadata, schema, protocol, checkpoint, restore, constraints, properties |
-| **Total** | **39** | |
+| **Total** | **40** | |
 
 ## Cleanup
 

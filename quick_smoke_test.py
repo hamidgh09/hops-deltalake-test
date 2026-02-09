@@ -4,34 +4,27 @@
 # Simple single-file test to verify basic Delta Lake write on HopsFS
 # For comprehensive tests, use: run_write_read.py, run_dml.py, etc.
 #
-# Configuration:
+# Configuration is loaded from tests/config.py
+# Environment variables are set BEFORE importing deltalake
 
-import os
+import hopsworks
+import pandas as pd
+import pyarrow as pa
+from deltalake import write_deltalake
 
-hopsworks_api_host = "127.0.0.1"
-hopsworks_api_port = "8182"
-hopsworks_api_key = "3ecOSi7P2yQzKg6U.ttyEF57ptdBf2mmg6COB0cQDk2XhrFUyI9ET9paXt1pyMasaUbsOeo0KGXgNaKQy"
-hopsworks_project_name = "test"
-hops_fs_namenode = "51.195.99.234"
-
-# It's important to set environment variables BEFORE importing the libraries
-os.environ["HOPSFS_CLOUD_DATANODE_HOSTNAME_OVERRIDE"] = "51.195.99.245"
-os.environ["HOPSFS_CLOUD_NAMENODE_HOSTNAME_OVERRIDE"] = "51.195.99.234"
-os.environ["PEMS_DIR"] = f"/tmp/{hopsworks_api_host}/{hopsworks_project_name}/"
-os.environ["LIBHDFS_DEFAULT_USER"] = "test__meb10000"
+from tests.config import (
+    HOPSWORKS_API_HOST,
+    HOPSWORKS_API_PORT,
+    HOPSWORKS_API_KEY,
+    get_table_path,
+)
 
 # -------------------------------
 # Import required libraries and initiate Hopsworks connection
 # -------------------------------
 
-import time
-import pyarrow as pa
-import pandas as pd
-import hopsworks
-from deltalake import write_deltalake, DeltaTable
-
-project = hopsworks.login(host=hopsworks_api_host, port=hopsworks_api_port, api_key_value=hopsworks_api_key)
-table_path = f"hdfs://{hops_fs_namenode}:8020/Projects/{hopsworks_project_name}/{hopsworks_project_name}_Training_Datasets/delta_table_test"
+project = hopsworks.login(host=HOPSWORKS_API_HOST, port=HOPSWORKS_API_PORT, api_key_value=HOPSWORKS_API_KEY)
+table_path = get_table_path("delta_table_test", track=False)
 
 # -------------------------------
 # Create a sample DataFrame and write it to HopsFS

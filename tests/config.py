@@ -29,15 +29,21 @@ def setup_environment():
     os.environ["LIBHDFS_DEFAULT_USER"] = "test__meb10000"
 
 
-def get_table_path(table_name: str, track: bool = True) -> str:
-    """Generate full HDFS path for a delta table and optionally track for cleanup."""
+def get_table_path(table_name: str, track: bool = True, schema: str = "hdfs") -> str:
+    """Generate full path for a delta table and optionally track for cleanup.
+
+    Args:
+        table_name: Name of the delta table
+        track: Whether to track for cleanup (default True)
+        schema: URL schema to use - "hdfs" or "hopsfs" (default "hdfs")
+    """
     if track and table_name not in _created_tables:
         _created_tables.append(table_name)
-    return f"hdfs://{HOPSFS_NAMENODE}:{HOPSFS_NAMENODE_PORT}/Projects/{HOPSWORKS_PROJECT_NAME}/{HOPSWORKS_PROJECT_NAME}_Training_Datasets/{table_name}"
+    return f"{schema}://{HOPSFS_NAMENODE}:{HOPSFS_NAMENODE_PORT}/Projects/{HOPSWORKS_PROJECT_NAME}/{HOPSWORKS_PROJECT_NAME}_Training_Datasets/{table_name}"
 
 
 def get_hopsfs_path(table_name: str) -> str:
-    """Get the HopsFS path (without hdfs:// prefix) for filesystem operations."""
+    """Get the HopsFS path (without schema prefix) for filesystem operations."""
     return f"/Projects/{HOPSWORKS_PROJECT_NAME}/{HOPSWORKS_PROJECT_NAME}_Training_Datasets/{table_name}"
 
 

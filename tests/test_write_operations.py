@@ -152,6 +152,37 @@ def test_write_schema_evolution():
     print(f"[PASS] Total rows: {len(dt.to_pyarrow_table())}")
 
 
+def test_hopsfs_schema():
+    """Test writing and reading using hopsfs:// schema instead of hdfs://."""
+    print("\n=== Test: HopsFS Schema ===")
+
+    table_path = get_table_path("delta_hopsfs_schema", schema="hopsfs")
+    print(f"[INFO] Using hopsfs:// schema: {table_path}")
+
+    # Write data using hopsfs:// schema
+    df = pd.DataFrame({
+        "id": range(100),
+        "value": ["hopsfs_schema_test"] * 100
+    })
+    table = pa.Table.from_pandas(df, preserve_index=False)
+
+    write_deltalake(table_path, table, mode="overwrite")
+    print("[PASS] Write with hopsfs:// schema successful")
+
+    # Read data back using hopsfs:// schema
+    dt = DeltaTable(table_path)
+    result = dt.to_pyarrow_table()
+    print(f"[PASS] Read with hopsfs:// schema successful")
+    print(f"[PASS] Table version: {dt.version()}")
+    print(f"[PASS] Row count: {len(result)}")
+
+    # Verify data integrity
+    pdf = result.to_pandas()
+    assert len(pdf) == 100, f"Expected 100 rows, got {len(pdf)}"
+    assert pdf["value"].iloc[0] == "hopsfs_schema_test", "Data mismatch"
+    print("[PASS] Data integrity verified")
+
+
 def run_all_write_tests():
     """Run all write operation tests."""
     print("\n" + "=" * 50)
@@ -172,6 +203,7 @@ def run_all_write_tests():
         test_write_append,
         test_write_partitioned,
         test_write_schema_evolution,
+        test_hopsfs_schema,
     ]
 
     passed = 0
