@@ -35,6 +35,21 @@ HOPSFS_NAMENODE = "your-namenode-ip"
 HOPSFS_DATANODE = "your-datanode-ip"
 ```
 
+### Feature Store Tests (External Access)
+
+To run Feature Store tests from outside the cluster, you need to configure load balancer domains in the **Hopsworks Admin Panel**. Set the following variables:
+
+- `loadbalancer_external_domain_feature_query` - use the `arrowflight-external` external IP address
+- `loadbalancer_external_domain_datanode`
+- `loadbalancer_external_domain_namenode`
+
+To find the LoadBalancer external IPs, run:
+
+```bash
+kubectl get services -n hopsworks --field-selector spec.type=LoadBalancer \
+    -o custom-columns='SERVICE:.metadata.name,EXTERNAL-IP:.status.loadBalancer.ingress[0].ip,PORT:.spec.ports[0].port'
+```
+
 ## Running Tests
 
 ### Run All Tests
@@ -50,6 +65,7 @@ python run_write_read.py    # Write & Read operations
 python run_dml.py           # Delete, Update, Merge operations
 python run_maintenance.py   # Vacuum, Optimize, Z-Order
 python run_advanced.py      # Versioning, Checkpoints, Constraints
+python run_feature_store.py # Feature Store sanity check
 ```
 
 ### Run Individual Test Modules
@@ -116,6 +132,7 @@ deltars-test/
 ├── run_dml.py                      # DML tests runner
 ├── run_maintenance.py              # Maintenance tests runner
 ├── run_advanced.py                 # Advanced tests runner
+├── run_feature_store.py            # Feature Store tests runner
 ├── tests/
 │   ├── __init__.py
 │   ├── config.py                   # Remote configuration & cleanup
@@ -124,7 +141,8 @@ deltars-test/
 │   ├── test_read_operations.py     # Read tests
 │   ├── test_dml_operations.py      # Merge, update, delete tests
 │   ├── test_maintenance.py         # Vacuum, optimize, z-order tests
-│   └── test_advanced.py            # Versioning, checkpoints, constraints
+│   ├── test_advanced.py            # Versioning, checkpoints, constraints
+│   └── test_feature_store.py       # Feature Store sanity check tests
 └── README.md
 ```
 
@@ -136,7 +154,8 @@ deltars-test/
 | DML | 10 | delete, update, merge (upsert, delete, conditional), deletion vectors (delete, update, merge) |
 | Maintenance | 5 | vacuum (dry run, execute), optimize (compact, z-order, filtered) |
 | Advanced | 11 | version, metadata, schema, protocol, checkpoint, restore, constraints, properties |
-| **Total** | **40** | |
+| Feature Store | 1 | feature group CRUD, feature view, train/test splits (Delta format) |
+| **Total** | **41** | |
 
 ## Cleanup
 

@@ -85,6 +85,11 @@ from tests.test_advanced import (
     test_history_details,
 )
 
+from tests.test_feature_store import (
+    test_feature_store_deltalake,
+    cleanup_feature_store_resources,
+)
+
 all_tests = {
     "Write & Read": [
         ("Write: Overwrite", test_write_overwrite),
@@ -133,6 +138,9 @@ all_tests = {
         ("Constraint: Drop", test_drop_constraint),
         ("Properties: Set", test_table_properties),
         ("History: Detailed", test_history_details),
+    ],
+    "Feature Store": [
+        ("Feature Store: Delta Lake CRUD", lambda: test_feature_store_deltalake(project, online_enable=False, spark=None)),
     ],
 }
 
@@ -183,3 +191,6 @@ print(f"\n[INFO] Tables created: {len(get_created_tables())}")
 
 # Cleanup all test tables
 cleanup_test_tables()
+
+# Cleanup feature store resources
+cleanup_feature_store_resources()
