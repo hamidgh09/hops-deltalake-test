@@ -35,6 +35,7 @@ from tests.test_write_operations import (
     test_write_append,
     test_write_partitioned,
     test_write_schema_evolution,
+    test_hopsfs_schema,
 )
 
 # Run read tests
@@ -56,6 +57,7 @@ all_tests = [
     ("Write: Append", test_write_append),
     ("Write: Partitioned", test_write_partitioned),
     ("Write: Schema Evolution", test_write_schema_evolution),
+    ("Write: HopsFS Schema", test_hopsfs_schema),
     # Setup for read tests
     ("Read: Setup Versioned Table", setup_test_table_with_versions),
     # Read operations

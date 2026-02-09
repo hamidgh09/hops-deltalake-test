@@ -1,35 +1,46 @@
+#!/usr/bin/env python3
 # -------------------------------
-# Run All Tests
+# Run Tests in Kubernetes Cluster
 # -------------------------------
-# Runs all delta-rs filesystem operation tests
+# Use this script when running tests inside the Hopsworks Kubernetes cluster.
+# No Hopsworks login needed - uses admin credentials from pod environment.
+# Environment variables are already configured by the cluster.
+#
+# Usage:
+#   python run_cluster.py
+#
+# Environment variables (optional, have sensible defaults):
+#   HOPSFS_NAMENODE - Namenode hostname (default: namenode.hopsworks.svc.cluster.local)
+#   HOPSFS_NAMENODE_PORT - Namenode port (default: 8020)
+#   HOPSWORKS_PROJECT_NAME - Project name (default: test)
 
-from tests.config import (
-    HOPSWORKS_API_HOST,
-    HOPSWORKS_API_PORT,
-    HOPSWORKS_API_KEY,
-    set_project,
-    cleanup_test_tables,
-    get_created_tables,
-)
+import sys
 
-import hopsworks
+# Patch the config module BEFORE importing tests
+# This replaces the remote config with cluster config
+import tests.config_cluster as cluster_config
+import tests.config as config
 
-# Connect to Hopsworks once for all tests
+# Override config module attributes with cluster values
+config.HOPSFS_NAMENODE = cluster_config.HOPSFS_NAMENODE
+config.HOPSFS_NAMENODE_PORT = cluster_config.HOPSFS_NAMENODE_PORT
+config.HOPSWORKS_PROJECT_NAME = cluster_config.HOPSWORKS_PROJECT_NAME
+config.get_table_path = cluster_config.get_table_path
+config.get_hopsfs_path = cluster_config.get_hopsfs_path
+config.cleanup_test_tables = cluster_config.cleanup_test_tables
+config.get_created_tables = cluster_config.get_created_tables
+
+# Provide no-op for set_project since we don't use Hopsworks client
+config.set_project = lambda x: None
+
 print("=" * 60)
-print("DELTA-RS FILESYSTEM OPERATIONS - ALL TESTS")
+print("DELTA-RS FILESYSTEM OPERATIONS - CLUSTER TESTS")
+print("=" * 60)
+print(f"Namenode: {cluster_config.HOPSFS_NAMENODE}:{cluster_config.HOPSFS_NAMENODE_PORT}")
+print(f"Project: {cluster_config.HOPSWORKS_PROJECT_NAME}")
 print("=" * 60)
 
-project = hopsworks.login(
-    host=HOPSWORKS_API_HOST,
-    port=HOPSWORKS_API_PORT,
-    api_key_value=HOPSWORKS_API_KEY
-)
-print(f"Connected to Hopsworks project: {project.name}\n")
-
-# Register project for cleanup
-set_project(project)
-
-# Import all tests
+# Now import tests (they will use the patched config)
 from tests.test_write_operations import (
     test_write_overwrite,
     test_write_append,
@@ -164,7 +175,7 @@ for category in all_tests.keys():
     category_results = [r for r in all_results if r[0] == category]
     passed = sum(1 for r in category_results if r[2] == "PASS")
     failed = sum(1 for r in category_results if r[2] == "FAIL")
-    status = "✓" if failed == 0 else "✗"
+    status = "+" if failed == 0 else "-"
     print(f"{status} {category}: {passed}/{len(category_results)} passed")
 
 print("\n" + "-" * 60)
@@ -179,7 +190,10 @@ if total_failed > 0:
             print(f"  - [{category}] {name}: {error}")
 
 # Show tables created
-print(f"\n[INFO] Tables created: {len(get_created_tables())}")
+print(f"\n[INFO] Tables created: {len(cluster_config.get_created_tables())}")
 
 # Cleanup all test tables
-cleanup_test_tables()
+cluster_config.cleanup_test_tables()
+
+# Exit with appropriate code
+sys.exit(0 if total_failed == 0 else 1)

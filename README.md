@@ -70,25 +70,61 @@ For a simple connectivity and basic write test:
 python quick_smoke_test.py
 ```
 
+### Run in Kubernetes Cluster
+
+When running inside the Hopsworks Kubernetes cluster, use the cluster runner which doesn't require Hopsworks login (uses admin credentials from pod environment):
+
+```bash
+python run_cluster.py
+```
+
+Optional environment variables for cluster mode:
+- `HOPSFS_NAMENODE` - Namenode hostname (default: `namenode.hopsworks.svc.cluster.local`)
+- `HOPSFS_NAMENODE_PORT` - Namenode port (default: `8020`)
+- `HOPSWORKS_PROJECT_NAME` - Project name (default: `test`)
+
+### Copy to a Pod (from local machine)
+
+Copy test files to a pod for manual execution:
+
+```bash
+./copy_to_pod.sh <pod-name> [namespace] [container]
+
+# Examples:
+./copy_to_pod.sh jupyter-pod
+./copy_to_pod.sh jupyter-pod hopsworks
+./copy_to_pod.sh jupyter-pod hopsworks jupyter
+```
+
+Then open a terminal in the pod (e.g., Jupyter notebook terminal) and run:
+
+```bash
+cd /hopsfs/Jupyter/deltars-test && python run_cluster.py
+```
+
+Requires `kubectl` configured with cluster access.
+
 ## Project Structure
 
 ```
 deltars-test/
 ├── quick_smoke_test.py             # Simple single-file smoke test
-├── run_all.py                      # Run all tests
+├── run_all.py                      # Run all tests (remote)
+├── run_cluster.py                  # Run all tests (in-cluster)
+├── copy_to_pod.sh                  # Copy test files to a pod
 ├── run_write_read.py               # Write & Read tests runner
 ├── run_dml.py                      # DML tests runner
 ├── run_maintenance.py              # Maintenance tests runner
 ├── run_advanced.py                 # Advanced tests runner
 ├── tests/
 │   ├── __init__.py
-│   ├── config.py                   # Shared configuration & cleanup
+│   ├── config.py                   # Remote configuration & cleanup
+│   ├── config_cluster.py           # In-cluster configuration
 │   ├── test_write_operations.py    # Write tests
 │   ├── test_read_operations.py     # Read tests
 │   ├── test_dml_operations.py      # Merge, update, delete tests
 │   ├── test_maintenance.py         # Vacuum, optimize, z-order tests
 │   └── test_advanced.py            # Versioning, checkpoints, constraints
-├── PLAN.md                         # Detailed test plan
 └── README.md
 ```
 
