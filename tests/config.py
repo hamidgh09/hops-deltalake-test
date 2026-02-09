@@ -7,12 +7,13 @@ import os
 # Hopsworks connection settings
 HOPSWORKS_API_HOST = "127.0.0.1"
 HOPSWORKS_API_PORT = "8182"
-HOPSWORKS_API_KEY = "3ecOSi7P2yQzKg6U.ttyEF57ptdBf2mmg6COB0cQDk2XhrFUyI9ET9paXt1pyMasaUbsOeo0KGXgNaKQy"
-HOPSWORKS_PROJECT_NAME = "test"
+HOPSWORKS_API_KEY = "YOUR_API_KEY"
+HOPSWORKS_PROJECT_NAME = "PROJECT_NAME"
 
 # HopsFS settings
-HOPSFS_NAMENODE = "51.195.99.234"
-HOPSFS_NAMENODE_PORT = "8020"
+HOPSFS_NAMENODE = "NAMENODE_IP_ADDRESS"
+HOPSFS_NAMENODE_PORT = "NAMENODE_PORT (e.g., 8020)"
+HOPSFS_DATANODE = "DATANODE_IP_ADDRESS"
 
 # Track created tables for cleanup
 _created_tables: list[str] = []
@@ -22,7 +23,7 @@ _hopsworks_project = None
 # Environment variables must be set BEFORE importing deltalake
 def setup_environment():
     """Set up environment variables required for HopsFS access."""
-    os.environ["HOPSFS_CLOUD_DATANODE_HOSTNAME_OVERRIDE"] = "51.195.99.245"
+    os.environ["HOPSFS_CLOUD_DATANODE_HOSTNAME_OVERRIDE"] = HOPSFS_DATANODE
     os.environ["HOPSFS_CLOUD_NAMENODE_HOSTNAME_OVERRIDE"] = HOPSFS_NAMENODE
     os.environ["PEMS_DIR"] = f"/tmp/{HOPSWORKS_API_HOST}/{HOPSWORKS_PROJECT_NAME}/"
     os.environ["LIBHDFS_DEFAULT_USER"] = "test__meb10000"
